@@ -20,16 +20,6 @@ function generate_data_sets(random_x_values=[], std=1) {
     return data_sets;
 }
 
-const margin = {top: 10, right: 30, bottom: 30, left: 60}
-const width = 460 - margin.left - margin.right
-const height = 400 - margin.top - margin.bottom;
-var mean = document.getElementById("slider_mean").value;
-var std = document.getElementById("slider_std").value;
-var num_random_values = 5
-var random_x_values = generate_random_values(num_random_values, mean, std);
-var data_sets = generate_data_sets(random_x_values, std);
-
-
 class Plot {
     constructor(svg_id, margin, width, height) {
         this.margin = margin
@@ -52,41 +42,44 @@ class Plot {
           .call(d3.axisBottom(this.x));
         this.svg.append("g")
           .call(d3.axisLeft(this.y));
+        this.path = this.svg.append("g");
+        this.focus_sets = [];
     }
 
     initializeDataSets(num_random_values, data_sets) {
+        for (let i = 0; i < this.focus_sets.length; i++) {
+            this.focus_sets[i].remove();
+        }
         this.num_random_values = num_random_values;
         this.data_sets = data_sets;
         this.focus_sets = [];
+        var that = this;
 
-        for (let i = 0; i < num_random_values; i++) {
-            var that = this;
-            // Create the line
-            var path = this.svg.selectAll("path").data(data_sets[i]);
-            path.attr("fill", "none")
-                .attr("stroke", "steelblue")
-                .attr("stroke-opacity", 0.3)
-                .attr("stroke-width", 2)
-                .attr("d", d3.line()
-                    .x(function(d) { return that.x(d.x) })
-                    .y(function(d) { return that.y(d.y) })
-                );
-            path.enter().append("path")
-                .attr("fill", "none")
-                .attr("stroke", "steelblue")
-                .attr("stroke-opacity", 0.3)
-                .attr("stroke-width", 2)
-                .attr("d", d3.line()
-                    .x(function(d) { return that.x(d.x) })
-                    .y(function(d) { return that.y(d.y) })
-                );
-            path.exit().remove();
-        }
+        // Plot Lines
+        var paths = this.path.selectAll("path").data(this.data_sets);
+        paths.attr("fill", "none")
+            .attr("stroke", "steelblue")
+            .attr("stroke-opacity", 0.3)
+            .attr("stroke-width", 2)
+            .attr("d", d3.line()
+                .x(function(d) { return that.x(d.x) })
+                .y(function(d) { return that.y(d.y) })
+            );
+        paths.enter().append("path")
+            .attr("fill", "none")
+            .attr("stroke", "steelblue")
+            .attr("stroke-opacity", 0.3)
+            .attr("stroke-width", 2)
+            .attr("d", d3.line()
+                .x(function(d) { return that.x(d.x) })
+                .y(function(d) { return that.y(d.y) })
+            );
+        paths.exit().remove();
 
+        // Plot Foci
         for (let i = 0; i < num_random_values; i++) {
             // Create the circle that travels along the curve of chart
-            var focus = this.svg
-                .append('g')
+            var focus = this.path
                 .append('circle')
                     .attr("stroke", "black")
                     .attr('r', 2)
@@ -110,9 +103,36 @@ class Plot {
     }
 }
 
+const margin = {top: 10, right: 30, bottom: 30, left: 60}
+const width = 460 - margin.left - margin.right
+const height = 400 - margin.top - margin.bottom;
 const plot1 = new Plot("#plot1", margin, width, height);
-plot1.initializeDataSets(num_random_values, data_sets);
-//plot1.initializeDataSets(num_random_values, data_sets);
+var mean = document.getElementById("slider_mean").value;
+var std = document.getElementById("slider_std").value;
+var num_random_values = document.getElementById("slider_num_samples").value
+
+function initialize() {
+    var random_x_values = generate_random_values(num_random_values, mean, std);
+    var data_sets = generate_data_sets(random_x_values, std);
+    plot1.initializeDataSets(num_random_values, data_sets);
+}
+
+initialize()
+
+d3.select("#slider_mean").on("change", function(d) {
+    mean = +this.value;
+    initialize();
+});
+
+d3.select("#slider_std").on("change", function(d) {
+    std = +this.value;
+    initialize();
+});
+
+d3.select("#slider_num_samples").on("change", function(d) {
+    num_random_values = +this.value;
+    initialize();
+});
 
 // Create a rect on top of the svg area: this rectangle recovers mouse position
 plot1.svg
