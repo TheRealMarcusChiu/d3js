@@ -1,22 +1,20 @@
-// Select DOM elements
-var p = d3.select("body")
-    .selectAll("p");
+function setup(data) {
+    // Select DOM elements & Bind Data
+    p = d3.select("body").selectAll("p").data(data);
+    // Update Existing DOM elements (when necessary)
+    p
+        .text(function(d) { return d.x; });
+    // Insert New DOM Elements (when necessary)
+    p.enter().append("p")
+        .text(function(d) { return d.x; });
+    // Delete Existing DOM elements (when necessary)
+    p.exit().remove();
+}
 
-// Bind Data
-p = p.data([4, 8, 15, 16, 23, 42]);
+var data1 = [{x: 4}, {x: 8}, {x: 15}, {x: 16}, {x: 23}, {x: 42}];
+var data2 = [{x: 40}, {x: 80}];
+var data3 = [{x: 40}, {x: 80}, {x: 150}, {x: 1}, {x: 1}, {x: 1}, {x: 1}];
 
-// Update
-p.text(function(d) { return d; });
-
-// Enter
-p.enter()
-    .append("p")
-    .text(function(d) { return d; });
-
-p = d3.select("body")
-    .selectAll("p")
-    .data([40, 80, 150, 160, 230, 420])
-    .text(function(d) { return d; })
-    .enter()
-    .append("p")
-    .text(function(d) { return d; });
+setup(data1);
+setup(data2);
+setup(data3);
