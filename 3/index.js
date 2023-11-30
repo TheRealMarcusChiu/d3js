@@ -9,8 +9,7 @@ function generate_random_values(size=0, mean=0, std=1) {
 function generate_data_sets(random_x_values=[], std=1) {
     const data_sets = [];
 
-    const step = 0.1
-    const x_data = d3.range(-10, 10, step);
+    const x_data = d3.range(-10, 10, 0.1);
     for (let i = 0; i < random_x_values.length; i++) {
         const y_data = x_data.map(x => Math.log(dnorm(random_x_values[i], x, std)))
         const data = x_data.map(function (x, j) { return { x: x, y: y_data[j] } });
@@ -56,16 +55,10 @@ class Plot {
         var that = this;
 
         // Plot Lines
-        var paths = this.path.selectAll("path").data(this.data_sets);
-        paths.attr("fill", "none")
-            .attr("stroke", "steelblue")
-            .attr("stroke-opacity", 0.3)
-            .attr("stroke-width", 2)
-            .attr("d", d3.line()
-                .x(function(d) { return that.x(d.x) })
-                .y(function(d) { return that.y(d.y) })
-            );
-        paths.enter().append("path")
+        var paths = this.path
+            .selectAll("path")
+            .data(this.data_sets)
+            .join("path")
             .attr("fill", "none")
             .attr("stroke", "steelblue")
             .attr("stroke-opacity", 0.3)
@@ -74,7 +67,6 @@ class Plot {
                 .x(function(d) { return that.x(d.x) })
                 .y(function(d) { return that.y(d.y) })
             );
-        paths.exit().remove();
 
         // Plot Foci
         for (let i = 0; i < num_random_values; i++) {
@@ -114,6 +106,7 @@ var num_random_values = document.getElementById("slider_num_samples").value
 function initialize() {
     var random_x_values = generate_random_values(num_random_values, mean, std);
     var data_sets = generate_data_sets(random_x_values, std);
+    console.log(data_sets)
     plot1.initializeDataSets(num_random_values, data_sets);
 }
 
